@@ -4,7 +4,7 @@ import { PostItem } from "./PostItem";
 
 
 export interface Post {
-    id: string;
+    id: number;
     title: string;
     content: string;
     created_at: string;
