@@ -1,19 +1,47 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase-client';
 import { useAuth } from '../context/AuthContext';
 import { CalendarDays, Link as LinkIcon, MapPin, ArrowLeft } from 'lucide-react';
 import { PostItem } from '../components/PostItem';
 import { UpdateProfileModal } from '../components/UpdateProfileModal';
 
+// Type for Profile
+interface Profile {
+  id: string;
+  username: string;
+  full_name: string;
+  avatar_url?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  created_at: string;
+  cover_image_url?: string;
+}
+
+// Type for Post
+interface Post {
+  id: string;
+  title?: string;
+  content?: string;
+  created_at: string;
+  image_url?: string;
+  user_id: string;
+  username?: string;
+  full_name?: string;
+  avatar_url?: string;
+}
+
+// Valid tab names
+type Tab = 'posts' | 'replies' | 'media' | 'likes';
+
 // Fetch user profile
 const fetchUserProfile = async ({
   username,
   userId
-}: { username?: string; userId?: string }) => {
+}: { username?: string; userId?: string }): Promise<Profile> => {
   if (username) {
-    console.log("Fetching profile by username:", username);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -25,7 +53,6 @@ const fetchUserProfile = async ({
   }
 
   if (userId) {
-    console.log("Fetching profile by user ID:", userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -43,31 +70,27 @@ const fetchUserProfile = async ({
 export const Profile: React.FC = () => {
   const { username } = useParams<{ username?: string }>();
   const { user: currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'posts' | 'replies' | 'media' | 'likes'>('posts');
+  const [activeTab, setActiveTab] = useState<Tab>('posts');
   const [showModal, setShowModal] = useState(false);
   const queryClient = useQueryClient();
 
- 
   const userProfileKey = username
-  ? ['user_profile', 'username', username]
-  : ['user_profile', 'id', currentUser?.id || ''];
+    ? ['user_profile', 'username', username]
+    : ['user_profile', 'id', currentUser?.id || ''];
 
-
-const onUpdate = async () => {
-  await queryClient.invalidateQueries(userProfileKey);
-};
-
+  const onUpdate = async () => {
+    await queryClient.invalidateQueries({ queryKey: userProfileKey });
+  };
 
   if (!currentUser) {
     return <div className="text-white">Loading user data...</div>;
   }
 
-  // Fetch User Profile
   const {
     data: profile,
     isLoading: profileLoading,
     error: profileError
-  } = useQuery({
+  } = useQuery<Profile>({
     queryKey: userProfileKey,
     queryFn: () => fetchUserProfile({
       username: username,
@@ -77,12 +100,10 @@ const onUpdate = async () => {
     retry: 1
   });
 
-  // Fetch User Posts
-  const { 
-    data: posts, 
-    isLoading: postsLoading, 
-    error: postsError 
-  } = useQuery({
+  const {
+    data: posts,
+    isLoading: postsLoading
+  } = useQuery<Post[]>({
     queryKey: ['user_posts', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
@@ -102,9 +123,7 @@ const onUpdate = async () => {
     enabled: !!profile?.id
   });
 
-  // Profile Fetch Error
   if (profileError) {
-    console.error("Profile fetch error:", profileError);
     return (
       <div className="bg-black h-screen text-white flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold mb-4">Profile Not Found</h2>
@@ -119,7 +138,7 @@ const onUpdate = async () => {
     );
   }
 
-  if (profileLoading) {
+  if (profileLoading || !profile) {
     return <div className="bg-black h-screen text-white flex items-center justify-center">Loading profile...</div>;
   }
 
@@ -127,10 +146,10 @@ const onUpdate = async () => {
     <div className="bg-black h-screen text-white overflow-y-auto scrollbar-hide">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-black flex items-center p-4 border-b border-gray-800">
-      <Link to={'/'}>
-        <button title='back' className="mr-4 hover:bg-gray-800 rounded-full p-2 cursor-pointer">
-          <ArrowLeft size={24} />
-        </button>
+        <Link to={'/'}>
+          <button title='back' className="mr-4 hover:bg-gray-800 rounded-full p-2 cursor-pointer">
+            <ArrowLeft size={24} />
+          </button>
         </Link>
         <div>
           <h2 className="text-xl font-bold">{profile.full_name}</h2>
@@ -168,19 +187,17 @@ const onUpdate = async () => {
             <p className="text-gray-500">@{profile.username}</p>
           </div>
 
-          {/* Show Edit button only for own profile */}
           {profile.id === currentUser?.id && (
-            <button 
-            className="border px-4 py-1 rounded-full text-sm font-semibold hover:bg-gray-800"
-            onClick={() => setShowModal(true)}>
+            <button
+              className="border px-4 py-1 rounded-full text-sm font-semibold hover:bg-gray-800"
+              onClick={() => setShowModal(true)}
+            >
               Edit Profile
             </button>
           )}
         </div>
 
-        {profile.bio && (
-          <p className="mt-2 text-white">{profile.bio}</p>
-        )}
+        {profile.bio && <p className="mt-2 text-white">{profile.bio}</p>}
 
         <div className="flex flex-wrap gap-4 text-gray-400 text-sm mt-3">
           {profile.location && (
@@ -214,7 +231,7 @@ const onUpdate = async () => {
         {['posts', 'replies', 'media', 'likes'].map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab as any)}
+            onClick={() => setActiveTab(tab as Tab)}
             className={`py-3 font-semibold capitalize ${
               activeTab === tab
                 ? 'border-b-2 border-blue-500 text-white'
@@ -231,7 +248,7 @@ const onUpdate = async () => {
         {postsLoading ? (
           <div className="p-4 text-gray-400">Loading posts...</div>
         ) : posts && posts.length > 0 ? (
-          posts.map((post: any) => (
+          posts.map((post) => (
             <PostItem key={post.id} post={post} />
           ))
         ) : (
@@ -239,16 +256,14 @@ const onUpdate = async () => {
         )}
       </div>
 
-    
-      {/* edit modal */}
-        {showModal && (
-          <UpdateProfileModal
-            currentProfile={profile}
-            onClose={() => setShowModal(false)}
-            onUpdate={onUpdate}
-          />
-        )}
-              
+      {/* Edit Modal */}
+      {showModal && (
+        <UpdateProfileModal
+          currentProfile={profile}
+          onClose={() => setShowModal(false)}
+          onUpdate={onUpdate}
+        />
+      )}
     </div>
   );
 };
