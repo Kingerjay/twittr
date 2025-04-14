@@ -17,7 +17,7 @@ function App() {
   const { user, loading } = useAuth();
 
   // Loading screen
-  if (loading && user) {
+  if (loading) {
     return (
       <div>
         <Navbar />
