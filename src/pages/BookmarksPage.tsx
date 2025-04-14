@@ -4,13 +4,14 @@ import { PostItem } from "../components/PostItem";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
-import { Post } from "../components/PostList"; // Ensure this is the correct path to your Post type
+import { Post } from "../components/PostList"; // Ensure this is the correct path
 
 // Define a bookmark type with related post
-interface Bookmark {
+export interface Bookmark {
   id: number;
   post_id: number;
   user_id: string;
+  created_at: string;
   posts: Post;
 }
 
