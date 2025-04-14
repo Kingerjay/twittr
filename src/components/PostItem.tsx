@@ -7,7 +7,7 @@ import { supabase } from "../supabase-client";
 import { BookmarkButton } from "./BookmarkButton";
 
 interface Props {
-  post: Post;
+  post: any;
 }
 
 const fetchCommentCount = async (postId: number): Promise<number> => {
