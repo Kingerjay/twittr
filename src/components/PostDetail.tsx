@@ -84,6 +84,7 @@ export const PostDetail = ({ postId }: Props) => {
         {/* Header: Avatar and Title */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
+            <Link to={`/user/${post.username}`}>
             {post?.avatar_url ? (
               <img
                 src={post.avatar_url}
@@ -95,11 +96,15 @@ export const PostDetail = ({ postId }: Props) => {
                 {post?.username?.slice(0, 1)}
               </div>
             )}
+            </Link>
+
             <div className="flex flex-col flex-1">
+              <Link to={`/user/${post.username}`}>
               <div className="leading-[20px] sm:leading-[22px] font-semibold text-sm sm:text-base">
                 {post.full_name}
                 <p className="text-gray-400 text-xs sm:text-sm">@{post.username}</p>
               </div>
+              </Link>
             </div>
           </div>
 

@@ -36,7 +36,7 @@ export const PostItem = ({ post }: Props) => {
         <div className="w-full">
           {/* Header: Avatar and Title */}
           <div className="flex space-x-2">
-            <Link to={`/user/${post.username}`} className="flex-shrink-0">
+            <Link to={`/user/${post.username}`}>
               {post.avatar_url ? (
                 <img
                   src={post.avatar_url}

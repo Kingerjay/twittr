@@ -101,7 +101,7 @@ const Rightbar = () => {
         {searchQuery && searchResults.length > 0 && (
           <div className="mt-2 bg-gray-800 rounded-lg shadow-md max-h-60 overflow-y-auto">
             {searchResults.map((user) => (
-              <div key={user.id} className="flex items-center justify-between py-3 px-4 hover:bg-gray-700 cursor-pointer">
+              <Link to={`/user/${user.username}`} key={user.id} className="flex items-center justify-between py-3 px-4 hover:bg-gray-700 cursor-pointer">
                 <div className="flex items-center">
                   <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center mr-3">
                     {user.avatar_url ? (
@@ -115,7 +115,7 @@ const Rightbar = () => {
                     <div className="text-gray-500 text-xs">{user.username}</div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

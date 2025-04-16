@@ -19,20 +19,19 @@ import {
 import { useState } from "react";
 import { HomeCreatePost } from "../components/HomeCreatePost";
 
-
-// interface Profile {
-//   full_name: string;
-//   username: string;
-//   avatar_url: string;
-// }
+export interface Profile {
+  avatar_url: string | null;
+  username: string;
+  full_name: string;
+}
 
 
 const Sidebar = () => {
   const { user, signOut } = useAuth(); // Get the authenticated user
   const [showCreatePost, setShowCreatePost] = useState(false);
 
-
-
+  const fullName = user?.user_metadata.full_name
+  const userName = user?.user_metadata.username
 
   const menuItems = [
     { icon: <Home size={24} />, label: <Link to={"/"}>Home</Link> },
@@ -46,7 +45,7 @@ const Sidebar = () => {
   ];
 
   // Fetching Logged user Profiles
-  const { data: profile } = useQuery({
+  const { data: profile } = useQuery<Profile>({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -108,7 +107,7 @@ const Sidebar = () => {
       </button>
 
       {/* User Profile Section */}
-      {user && (
+      
         <Link to="/profile">
         <div className="flex items-center gap-2 p-3 hover:bg-zinc-800 rounded-full cursor-pointer mb-2">
            {profile?.avatar_url ? (
@@ -124,21 +123,19 @@ const Sidebar = () => {
               )}
           <div className="flex-grow min-w-0">
             <div className="flex items-center">
-              {profile?.full_name && (
-                <p className="font-bold text-sm truncate mr-1">{profile?.full_name}</p>
-              )}
+                <p className="font-bold text-sm truncate mr-1">{profile?.full_name || fullName}</p>           
               <span className="text-blue-500 flex-shrink-0">
                 <BadgeCheck size={16} />
               </span>
             </div>
-            <p className="text-gray-500 text-sm truncate">@{profile?.username}</p>
+            <p className="text-gray-500 text-sm truncate">@{profile?.username || userName}</p>
           </div>
           <span className="text-gray-500">
             <MoreHorizontal size={16} />
           </span>
         </div>
         </Link>
-      )}
+      
 
       {/* Show Create Post */}
       {showCreatePost && (
